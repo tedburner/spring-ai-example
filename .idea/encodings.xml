@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/spring-ai-chat/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-chat/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-stdio/spring-ai-mcp-stdio-client/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-stdio/spring-ai-mcp-stdio-client/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-stdio/spring-ai-mcp-stdio-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-stdio/spring-ai-mcp-stdio-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-stdio/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-stdio/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-streamable/spring-ai-mcp-streamable-client/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-streamable/spring-ai-mcp-streamable-client/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-streamable/spring-ai-mcp-streamable-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-streamable/spring-ai-mcp-streamable-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-streamable/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/spring-ai-mcp-streamable/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-mcp/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-openmanus/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-openmanus/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-vector/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-ai-vector/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>
