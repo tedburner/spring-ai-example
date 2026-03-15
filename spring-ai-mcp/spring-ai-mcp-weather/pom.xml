@@ -4,20 +4,20 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.ai</groupId>
-        <artifactId>spring-ai-project</artifactId>
+        <artifactId>spring-ai-mcp</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.ai</groupId>
-    <artifactId>spring-ai-mcp</artifactId>
+    <artifactId>spring-ai-mcp-weather</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>spring-ai-mcp</name>
-    <description>spring-ai-mcp</description>
+    <name>spring-ai-mcp-weather</name>
+    <description>Spring AI MCP Weather - 基于 Streamable HTTP 的天气查询 MCP 服务</description>
     <packaging>pom</packaging>
 
     <modules>
-        <module>spring-ai-mcp-weather</module>
-        <module>spring-ai-mcp-filesystem</module>
+        <module>spring-ai-mcp-weather-client</module>
+        <module>spring-ai-mcp-weather-server</module>
     </modules>
 
     <properties>
@@ -29,17 +29,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-    </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

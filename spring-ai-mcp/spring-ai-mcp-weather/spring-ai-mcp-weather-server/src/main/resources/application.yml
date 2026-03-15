@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: spring-ai-mcp-weather-server
+  ai:
+    mcp:
+      server:
+        name: weather-server
+        version: 1.0.0
+
+# wttr.in 配置（免费服务，无需 API Key）
+weather:
+  wttr:
+    url: https://wttr.in/
+    # 语言：zh 中文，en 英文
+    lang: zh
+    # 格式：3=简洁格式（城市 + 温度 + 天气），7=完整格式
+    format: "3"
