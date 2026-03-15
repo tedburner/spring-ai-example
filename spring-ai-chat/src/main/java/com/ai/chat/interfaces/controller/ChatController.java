@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +42,7 @@ public class ChatController {
     @GetMapping(value = "stream-query", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> streamQuery(@RequestParam("query") String query) {
         LOGGER.info("问句：{}", query);
-        OllamaOptions options = OllamaOptions.builder()
+        OllamaChatOptions options = OllamaChatOptions.builder()
                 // 指定使用哪个大模型，这里使用的是deepseek-r1:8b模型
                 .model("deepseek-r1:8b")
                 .temperature(0.5D)
@@ -60,7 +60,7 @@ public class ChatController {
     @GetMapping(value = "query")
     public Mono<String> chat(@RequestParam("query") String query) {
         LOGGER.info("问句：{}", query);
-        OllamaOptions options = OllamaOptions.builder()
+        OllamaChatOptions options = OllamaChatOptions.builder()
                 // 指定使用哪个大模型，这里使用的是deepseek-r1:8b模型
                 .model("deepseek-r1:8b")
                 .temperature(0.5D)

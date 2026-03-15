@@ -16,12 +16,6 @@
         <module>spring-ai-vector</module>
         <module>spring-ai-openmanus</module>
         <module>spring-ai-mcp</module>
-        <module>spring-ai-mcp/spring-ai-mcp-stdio</module>
-        <module>spring-ai-mcp/spring-ai-mcp-streamable</module>
-        <module>spring-ai-mcp/spring-ai-mcp-stdio/spring-ai-mcp-stdio-client</module>
-        <module>spring-ai-mcp/spring-ai-mcp-stdio/spring-ai-mcp-stdio-server</module>
-        <module>spring-ai-mcp/spring-ai-mcp-streamable/spring-ai-mcp-streamable-client</module>
-        <module>spring-ai-mcp/spring-ai-mcp-streamable/spring-ai-mcp-streamable-server</module>
     </modules>
 
     <properties>
@@ -29,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.5.5</spring-boot.version>
-        <spring-ai.version>1.0.1</spring-ai.version>
+        <spring-ai.version>2.0.0-M2</spring-ai.version>
     </properties>
 
     <dependencyManagement>
@@ -52,11 +46,32 @@
     </dependencyManagement>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <compilerArgs>
+                            <arg>-parameters</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

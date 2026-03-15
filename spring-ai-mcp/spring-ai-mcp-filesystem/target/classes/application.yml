@@ -1,0 +1,24 @@
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+  ai:
+    mcp:
+      server:
+        name: filesystem-server
+        version: 1.0.0
+
+# MCP 文件读取配置
+mcp:
+  file:
+    # 文件读取根目录限制（可选，为空则不限制）
+    # 仅允许读取此目录下的文件，防止目录穿越攻击
+    read-root: D:/Project/Java/spring-ai-project
+    # 允许读取的最大文件大小（字节），默认 1MB
+    max-size: 1048576
+
+# 注意：STDIO 传输协议要求禁用 Banner 和控制台日志
+# 否则会导致通信失败
+logging:
+  pattern:
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID: }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"

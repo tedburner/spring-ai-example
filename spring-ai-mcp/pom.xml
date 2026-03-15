@@ -16,7 +16,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>spring-ai-mcp-stdio</module>
+        <module>spring-ai-mcp-filesystem</module>
         <module>spring-ai-mcp-streamable</module>
     </modules>
 
