@@ -1,3 +1,6 @@
+server:
+  port: 8181
+
 spring:
   application:
     name: spring-ai-mcp-weather-server
@@ -6,6 +9,9 @@ spring:
       server:
         name: weather-server
         version: 1.0.0
+        # HTTP Streamable 传输配置
+        transport:
+          type: WEBFLUX
 
 # wttr.in 配置（免费服务，无需 API Key）
 weather:

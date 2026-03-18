@@ -1,0 +1,25 @@
+server:
+  port: 8300
+spring:
+  application:
+    name: spring-ai-mcp-weather-client
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: deepseek-r1:1.5b
+          temperature: 0.5
+    mcp:
+      client:
+        enabled: true
+        name: mcp-weather-client
+        version: 1.0.0
+        type: SYNC
+        request-timeout: 60s
+        transport:
+          type: HTTP
+          url: http://localhost:8181
+  main:
+    allow-circular-references: true
+    allow-bean-definition-overriding: true
