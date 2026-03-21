@@ -1,0 +1,12 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: spring-ai-mcp-weather-server
+  ai:
+    mcp:
+      server:
+        name: weather-server
+        version: 1.0.0
+        stdio: true

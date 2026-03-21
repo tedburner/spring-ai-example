@@ -1,0 +1,25 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: spring-ai-mcp-weather-server
+  ai:
+    mcp:
+      server:
+        name: weather-mcp-server
+        version: 1.0.0
+        type: SYNC
+        instructions: "This server provides weather information tools and resources"
+        # 启用 STDIO=false 来使用 HTTP/SSE 传输
+        stdio: false
+        # 能力配置
+        capabilities:
+          tool: true
+          resource: true
+          prompt: true
+          completion: true
+        # SSE 端点配置（默认值，可省略）
+        sse-message-endpoint: /mcp/message
+        # Keep-alive 配置
+        keep-alive-interval: 30s
