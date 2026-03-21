@@ -7,13 +7,16 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
-
 /**
  * 天气聊天服务 - 整合 MCP 工具与 Ollama 模型
+ *
+ * 模型配置从 application.yml 读取：
+ * - spring.ai.ollama.chat.options.model
+ * - spring.ai.ollama.chat.options.temperature
  */
 @Service
 public class WeatherChatService {
@@ -21,27 +24,33 @@ public class WeatherChatService {
     private static final Logger LOGGER = LoggerFactory.getLogger(WeatherChatService.class);
 
     private final OllamaChatModel ollamaChatModel;
-    private final SyncMcpToolCallbackProvider mcpToolCallbackProvider;
+    private final SyncMcpToolCallbackProvider toolCallbackProvider;
 
     public WeatherChatService(OllamaChatModel ollamaChatModel,
-                              SyncMcpToolCallbackProvider mcpToolCallbackProvider) {
+                              SyncMcpToolCallbackProvider toolCallbackProvider) {
         this.ollamaChatModel = ollamaChatModel;
-        this.mcpToolCallbackProvider = mcpToolCallbackProvider;
+        this.toolCallbackProvider = toolCallbackProvider;
+
+        // 启动时记录工具加载情况
+        ToolCallback[] callbacks = toolCallbackProvider.getToolCallbacks();
+        LOGGER.info("MCP 工具已加载：{} 个", callbacks.length);
+        for (ToolCallback callback : callbacks) {
+            LOGGER.info("  - 工具：{}", callback.getToolDefinition().name());
+        }
     }
 
     /**
      * 非流式聊天 - 支持天气查询
+     * 使用配置文件中的模型和温度设置
      */
     public String chat(String query) {
         LOGGER.info("用户查询：{}", query);
 
         try {
-            // 获取 MCP 工具回调
-            var toolCallbacks = mcpToolCallbackProvider.getToolCallbacks();
+            var toolCallbacks = toolCallbackProvider.getToolCallbacks();
 
-            OllamaChatOptions options = OllamaChatOptions.builder()
-                    .model("deepseek-r1:1.5b")
-                    .temperature(0.5)
+            // 使用配置文件的默认设置 + MCP 工具
+            var options = OllamaChatOptions.builder()
                     .toolCallbacks(toolCallbacks)
                     .build();
 
@@ -49,7 +58,9 @@ public class WeatherChatService {
                     new Prompt(query, options)
             );
 
-            return response.getResult().getOutput().getText();
+            String text = response.getResult().getOutput().getText();
+            LOGGER.info("回复：{}", text);
+            return text;
         } catch (Exception e) {
             LOGGER.error("聊天请求失败：{}", e.getMessage());
             return "抱歉，处理您的请求时出错：" + e.getMessage();
@@ -58,23 +69,21 @@ public class WeatherChatService {
 
     /**
      * 流式聊天 - 支持天气查询
+     * 使用配置文件中的模型和温度设置
      */
     public Flux<String> streamChat(String query) {
         LOGGER.info("用户流式查询：{}", query);
 
-        // 获取 MCP 工具回调
-        var toolCallbacks = mcpToolCallbackProvider.getToolCallbacks();
+        var toolCallbacks = toolCallbackProvider.getToolCallbacks();
 
-        OllamaChatOptions options = OllamaChatOptions.builder()
-                .model("deepseek-r1:1.5b")
-                .temperature(0.5)
+        // 使用配置文件的默认设置 + MCP 工具
+        var options = OllamaChatOptions.builder()
                 .toolCallbacks(toolCallbacks)
                 .build();
 
         return ollamaChatModel.stream(new Prompt(query, options))
                 .map(response -> {
                     if (response.getResult() != null) {
-                        response.getResult();
                         return response.getResult().getOutput().getText();
                     }
                     return "";

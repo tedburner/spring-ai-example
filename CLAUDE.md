@@ -235,6 +235,199 @@ exchange.ping();
 
 ---
 
+## MCP Client 配置
+
+### MCP Client 依赖选择
+
+| 依赖 | 传输类型 | 适用场景 |
+|------|---------|---------|
+| `spring-ai-starter-mcp-client` | STDIO + HttpClient (SSE/Streamable-HTTP) | 标准客户端 |
+| `spring-ai-starter-mcp-client-webflux` | STDIO + WebFlux (SSE/Streamable-HTTP) | 推荐：响应式项目 |
+
+**注意**：SYNC 和 ASYNC 客户端不能混用，所有客户端必须同为步或异步。
+
+### MCP Client 配置属性
+
+#### 通用配置 (`spring.ai.mcp.client`)
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| `enabled` | 启用/禁用客户端 | `true` |
+| `name` | 客户端名称 | `spring-ai-mcp-client` |
+| `version` | 客户端版本 | `1.0.0` |
+| `request-timeout` | 请求超时时间 | `20s` |
+| `type` | 客户端类型：SYNC 或 ASYNC | `SYNC` |
+| `toolcallback.enabled` | 启用工具回调集成 | `true` |
+
+#### SSE 传输配置 (`spring.ai.mcp.client.sse`)
+
+```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        sse:
+          connections:
+            weather-server:
+              url: http://localhost:8181        # 基础 URL
+              sse-endpoint: /sse                # SSE 端点（默认 /sse）
+```
+
+#### Streamable-HTTP 传输配置
+
+```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        streamable-http:
+          connections:
+            server1:
+              url: http://localhost:8080
+              endpoint: /mcp                    # HTTP 端点（默认 /mcp）
+```
+
+#### STDIO 传输配置
+
+```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        stdio:
+          connections:
+            filesystem:
+              command: npx                      # Windows 需用 cmd.exe /c
+              args: ["-y", "@modelcontextprotocol/server-filesystem", "/path"]
+              env:
+                API_KEY: your-key
+```
+
+**Windows STDIO 特殊配置**（npx/npm/node 是批处理文件，需要 cmd.exe 包装）：
+```yaml
+command: cmd.exe
+args: ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "target"]
+```
+
+### 工具名称前缀生成器
+
+当连接多个 MCP 服务器时，可能出现工具名称冲突。Spring AI 默认行为：
+- 自动检测重复工具名并添加前缀（如 `alt_1_search`）
+- 替换非字母数字字符为下划线（如 `my-tool` → `my_tool`）
+
+**禁用前缀**（仅当确定无冲突时）：
+```java
+@Configuration
+public class McpConfiguration {
+    @Bean
+    public McpToolNamePrefixGenerator mcpToolNamePrefixGenerator() {
+        return McpToolNamePrefixGenerator.noPrefix();
+    }
+}
+```
+
+### 客户端自定义配置
+
+通过 `McpSyncClientCustomizer` 或 `McpAsyncClientCustomizer` 自定义客户端：
+
+```java
+@Component
+public class CustomMcpClientCustomizer implements McpSyncClientCustomizer {
+    @Override
+    public void customize(String serverConfigurationName, McpClient.SyncSpec spec) {
+        // 设置请求超时
+        spec.requestTimeout(Duration.ofSeconds(30));
+
+        // 设置工具变更通知
+        spec.toolsChangeConsumer((List<McpSchema.Tool> tools) -> {
+            System.out.println("工具列表已更新：" + tools.size() + " 个工具");
+        });
+
+        // 设置日志消费者
+        spec.loggingConsumer((McpSchema.LoggingMessageNotification log) -> {
+            System.out.println("日志：" + log.level() + " - " + log.data());
+        });
+
+        // 设置进度消费者
+        spec.progressConsumer((ProgressNotification progress) -> {
+            System.out.println("进度：" + progress.progress() * 100 + "%");
+        });
+    }
+}
+```
+
+**可用的自定义项**：
+- `requestTimeout()` - 请求超时配置
+- `toolsChangeConsumer()` - 工具变更通知
+- `resourcesChangeConsumer()` - 资源变更通知
+- `promptsChangeConsumer()` - 提示词变更通知
+- `loggingConsumer()` - 日志消息消费
+- `progressConsumer()` - 进度通知消费
+- `sampling()` - 自定义采样处理
+- `elicitation()` - 自定义信息收集处理
+
+### 工具过滤
+
+通过 `McpToolFilter` 接口过滤工具：
+
+```java
+@Component
+public class CustomMcpToolFilter implements McpToolFilter {
+    @Override
+    public boolean test(McpConnectionInfo connectionInfo, McpSchema.Tool tool) {
+        // 排除特定客户端的工具
+        if (connectionInfo.clientInfo().name().equals("restricted-client")) {
+            return false;
+        }
+        // 只包含特定前缀的工具
+        return tool.name().startsWith("allowed_");
+    }
+}
+```
+
+**注意**：应用中只应定义一个 `McpToolFilter` Bean。
+
+### MCP Client 注解
+
+使用注解处理 MCP 客户端事件：
+
+| 注解 | 说明 |
+|------|------|
+| `@McpLogging` | 处理服务器日志消息 |
+| `@McpSampling` | 处理 LLM 采样请求 |
+| `@McpElicitation` | 处理信息收集请求 |
+| `@McpProgress` | 处理进度通知 |
+| `@McpToolListChanged` | 处理工具列表变更 |
+| `@McpResourceListChanged` | 处理资源列表变更 |
+| `@McpPromptListChanged` | 处理提示词列表变更 |
+
+**使用示例**：
+```java
+@Component
+public class McpClientHandlers {
+
+    @McpLogging(clients = "weather-server")
+    public void handleLogging(LoggingMessageNotification notification) {
+        System.out.println("日志：" + notification.level() + " - " + notification.data());
+    }
+
+    @McpToolListChanged(clients = "weather-server")
+    public void handleToolListChanged(List<McpSchema.Tool> tools) {
+        System.out.println("工具列表更新：" + tools.size() + " 个工具");
+    }
+
+    @McpProgress(clients = "weather-server")
+    public void handleProgress(ProgressNotification notification) {
+        System.out.printf("进度：%.2f%% - %s%n",
+            notification.progress() * 100, notification.message());
+    }
+}
+```
+
+注解支持指定客户端：`clients = "server-name"`
+
+---
+
 ## Documentation Standards
 
 - **README.md / CLAUDE.md**: 使用简单表格格式，不要用目录树结构或 Project 接口图

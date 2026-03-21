@@ -8,7 +8,7 @@ spring:
       base-url: http://localhost:11434
       chat:
         options:
-          model: deepseek-r1:1.5b
+          model: qwen2.5:7b
           temperature: 0.5
     mcp:
       client:
@@ -17,9 +17,11 @@ spring:
         version: 1.0.0
         type: SYNC
         request-timeout: 60s
-        transport:
-          type: HTTP
-          url: http://localhost:8181
+        # SSE 传输配置（官方推荐方式）
+        sse:
+          connections:
+            weather-server:
+              url: http://localhost:8181
+              sse-endpoint: /sse
   main:
     allow-circular-references: true
-    allow-bean-definition-overriding: true
