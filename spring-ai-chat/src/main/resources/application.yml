@@ -9,6 +9,30 @@ spring:
       chat:
         options:
           model: deepseek-r1:1.5b
+    chat:
+      memory:
+        enabled: true
+        type: in_memory
+        ttl: 30m
+        capacity: 10
   main:
     allow-circular-references: true
     allow-bean-definition-overriding: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: spring-ai-chat
+      version: ${project.version:1.0.0}
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
