@@ -1,124 +1,124 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文档为 Claude Code (claude.ai/code) 在本项目中工作时提供指导。
 
-## Build & Test Commands
+## 构建与测试命令
 
 ```bash
-# Build all modules
+# 构建所有模块
 mvn clean package
 
-# Build skipping tests
+# 构建并跳过测试
 mvn clean package -Dmaven.test.skip=true
 
-# Run a single module
+# 运行单个模块
 cd <module-name> && mvn spring-boot:run
 ```
 
-## Project Structure
+## 项目结构
 
-This is a multi-module Maven project containing Spring AI examples and integrations. Spring Boot 3.5.5 and Spring AI 2.0.0-M2 are used across all modules.
+这是一个多模块 Maven 项目，包含 Spring AI 示例和集成。所有模块均使用 Spring Boot 3.5.5 和 Spring AI 2.0.0-M2。
 
-### Module Organization
+### 模块组织
 
-**Core Modules:**
-- `spring-ai-common` - Shared utilities for AI modules (Jackson, Lombok)
-- `spring-ai-chat` - LLM chat integration with Ollama (streaming and non-streaming)
-- `spring-ai-vector` - Vector store with Elasticsearch, PDF document reader, RAG
-- `spring-ai-openmanus` - OpenManus integration
-- `spring-ai-mcp` - Model Context Protocol (MCP) parent module
-  - `spring-ai-mcp-filesystem` - Filesystem-based MCP integration (STDIO transport)
-  - `spring-ai-mcp-weather` - Weather query MCP integration (SSE transport)
-    - `spring-ai-mcp-weather-server` - Weather MCP server (port 8181)
-    - `spring-ai-mcp-weather-client` - Weather MCP client with Ollama integration (port 8300)
+**核心模块：**
+- `spring-ai-common` - AI 模块共享工具（Jackson、Lombok）
+- `spring-ai-chat` - 与 Ollama 的 LLM 聊天集成（流式和非流式）
+- `spring-ai-vector` - 向量存储（Elasticsearch）、PDF 文档读取器、RAG
+- `spring-ai-openmanus` - OpenManus 集成
+- `spring-ai-mcp` - 模型上下文协议（MCP）父模块
+  - `spring-ai-mcp-filesystem` - 基于文件系统的 MCP 集成（STDIO 传输）
+  - `spring-ai-mcp-weather` - 天气查询 MCP 集成（SSE 传输）
+    - `spring-ai-mcp-weather-server` - 天气 MCP 服务器（端口 8181）
+    - `spring-ai-mcp-weather-client` - 带 Ollama 集成的天气 MCP 客户端（端口 8300）
 
-### Architecture Patterns
+### 架构模式
 
-**DDD Structure:**
+**DDD 结构：**
 ```
 src/main/java/
-├── application/     # Use case orchestration, DTOs
-├── domain/          # Entities, value objects, repositories, domain services
-│   └── rag/         # RAG (Retrieval-Augmented Generation) specific
-├── infrastructure/  # JPA repositories, config, external adapters
-└── interfaces/      # Controllers, VO conversion
+├── application/     # 用例编排、DTO
+├── domain/          # 实体、值对象、仓储、领域服务
+│   └── rag/         # RAG（检索增强生成）相关
+├── infrastructure/  # JPA 仓储、配置、外部适配器
+└── interfaces/      # 控制器、VO 转换
 ```
 
-### Key Configuration
+### 关键配置
 
-- **Java 17** required
+- **Java 17** 必需
 - **Spring Boot**: 3.5.5
-- **Spring AI**: 1.1.3 (configured via BOM in root pom)
-- **MapStruct**: 1.6.3 (for DTO mapping)
-- **Lombok**: Enabled with MapStruct binding
+- **Spring AI**: 1.1.3（在根 pom 中通过 BOM 配置）
+- **MapStruct**: 1.6.3（用于 DTO 映射）
+- **Lombok**：启用并与 MapStruct 绑定
 
-### External Dependencies
+### 外部依赖
 
-- **Ollama**: Required for local LLM (default port 11434)
-  - Chat models: `deepseek-r1:8b`, `qwen3:8b`
-  - Embedding models: `nomic-embed-text` (768 dim), `bge-m3` (1024 dim)
-- **Elasticsearch**: Required for vector store (port 9200)
-- **ChromaDB**: Alternative vector store (port 8001)
+- **Ollama**：本地 LLM 必需（默认端口 11434）
+  - 聊天模型：`deepseek-r1:8b`、`qwen3:8b`
+  - 嵌入模型：`nomic-embed-text`（768 维）、`bge-m3`（1024 维）
+- **Elasticsearch**：向量存储必需（端口 9200）
+- **ChromaDB**：可选向量存储（端口 8001）
 
-### Docker Setup
+### Docker 配置
 
 ```bash
-# Ollama (CPU or Nvidia GPU)
+# Ollama（CPU 或 Nvidia GPU）
 docker run --name ollama -d -v /data/ollama:/root/.ollama -p 11434:11434 ollama/ollama
 
 # AMD GPU
 docker pull ollama/ollama:rocm
 
-# ChromaDB (optional)
+# ChromaDB（可选）
 docker run -d --name chromadb -p 8001:8000 -v /data/chroma:/chroma/chroma -e IS_PERSISTENT=TRUE chromadb/chroma
 
-# Elasticsearch (for vector store)
+# Elasticsearch（用于向量存储）
 docker run -d --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" elasticsearch:8.x
 ```
 
-### Module Ports
+### 模块端口
 
-| Module | Port | Description |
+| 模块 | 端口 | 说明 |
 |--------|------|-------------|
-| spring-ai-chat | 8100 | Chat API with streaming support |
-| spring-ai-vector | 8200 | Vector store and RAG API |
-| spring-ai-mcp-weather-server | 8181 | MCP Weather Server (SSE) |
-| spring-ai-mcp-weather-client | 8300 | MCP Weather Client with Ollama |
+| spring-ai-chat | 8100 | 支持流式的聊天 API |
+| spring-ai-vector | 8200 | 向量存储和 RAG API |
+| spring-ai-mcp-weather-server | 8181 | MCP 天气服务器（SSE） |
+| spring-ai-mcp-weather-client | 8300 | 带 Ollama 集成的 MCP 天气客户端 |
 
-### API Endpoints
+### API 端点
 
 **spring-ai-chat**
 ```bash
-# Streaming chat
+# 流式聊天
 GET /chat/stream-query?query=你好
 
-# Non-streaming chat
+# 非流式聊天
 GET /chat/query?query=你好
 ```
 
 **spring-ai-vector**
 ```bash
-# Text embedding
+# 文本嵌入
 GET /vector/text/v1/embedding?text=hello
 
-# Store text
+# 存储文本
 GET /vector/text/v1/store?text=hello
 
-# Auto store text
+# 自动存储文本
 GET /vector/text/v1/auto/store?text=hello
 ```
 
-### Vector Store Configuration
+### 向量存储配置
 
-Elasticsearch vector store uses these key parameters:
-- `index-name`: Index name for vectors
-- `dimensions`: Vector dimension (768 for nomic-embed-text, 1024 for bge-m3)
-- `similarity`: `cosine`, `l2_norm`, or `dot_product`
-- `embedding-field-name`: Custom field name for embedding vector
+Elasticsearch 向量存储使用以下关键参数：
+- `index-name`：向量索引名称
+- `dimensions`：向量维度（nomic-embed-text 为 768，bge-m3 为 1024）
+- `similarity`：`cosine`、`l2_norm` 或 `dot_product`
+- `embedding-field-name`：嵌入向量的自定义字段名
 
 ---
 
-## MCP (Model Context Protocol) 配置
+## MCP（模型上下文协议）配置
 
 ### MCP 依赖选择
 
@@ -244,7 +244,7 @@ exchange.ping();
 | `spring-ai-starter-mcp-client` | STDIO + HttpClient (SSE/Streamable-HTTP) | 标准客户端 |
 | `spring-ai-starter-mcp-client-webflux` | STDIO + WebFlux (SSE/Streamable-HTTP) | 推荐：响应式项目 |
 
-**注意**：SYNC 和 ASYNC 客户端不能混用，所有客户端必须同为步或异步。
+**注意**：SYNC 和 ASYNC 客户端不能混用，所有客户端必须同为同步或异步。
 
 ### MCP Client 配置属性
 
@@ -428,28 +428,42 @@ public class McpClientHandlers {
 
 ---
 
-## Documentation Standards
+## 文档规范
 
-- **README.md / CLAUDE.md**: 使用简单表格格式，不要用目录树结构或 Project 接口图
+- **README.md / CLAUDE.md**：使用简单表格格式，不要用目录树结构或 Project 接口图
 - 文档结构应包含：项目概述、安装说明、可用命令
 
-## Git Workflow
+## Git 工作流
 
-- **Commit message**: 使用 gitmoji shortcode 格式（如 `:sparkles:`），不要用 unicode emoji 字符
+- **Commit message**：使用 gitmoji shortcode 格式（如 `:sparkles:`），不要用 unicode emoji 字符
 - 提交前检查敏感文件（.env、credentials 等）
 - 使用 `git add <具体文件>` 避免意外提交敏感数据
 
-## File Operations
+## 文件操作
 
 - 复制/移动文件后，验证操作是否成功再继续
 - 批量文件变更前，先展示摘要计划并等待用户确认
 
-## Interaction Preferences
+## 交互偏好
 
 - 执行多个工具调用或文件变更前，先展示摘要计划并等待用户确认
 - 长时间运行的操作（编译、测试、安装）优先使用后台模式或 Headless Mode
 
-## Long-running Operations
+## 长时间运行的操作
 
 - 编译、测试、安装等操作，优先使用后台任务或 Headless Mode
 - 操作完成后主动通知用户
+
+## 代码规范
+
+### 文件头注释
+
+创建新的Java文件时，必须添加以下头注释（IDE会自动替换日期和时间）：
+
+```java
+/**
+ * @author: kiturone
+ * @date: ${DATE} ${TIME}
+ * @description: 文件描述内容
+ */
+```
