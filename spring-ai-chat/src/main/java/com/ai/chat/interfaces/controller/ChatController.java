@@ -3,8 +3,8 @@ package com.ai.chat.interfaces.controller;
 import com.ai.chat.application.metrics.MetricsCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
@@ -19,7 +19,11 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 聊天测试模型
@@ -34,12 +38,13 @@ public class ChatController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatController.class);
 
     private final OllamaChatModel ollamaChatModel;
-    private final ChatMemory chatMemory;
     private final MetricsCollector metricsCollector;
 
-    public ChatController(OllamaChatModel ollamaChatModel, ChatMemory chatMemory, MetricsCollector metricsCollector) {
+    // 用于存储对话历史的内存缓存
+    private final Map<String, List<String>> chatHistory = new ConcurrentHashMap<>();
+
+    public ChatController(OllamaChatModel ollamaChatModel, MetricsCollector metricsCollector) {
         this.ollamaChatModel = ollamaChatModel;
-        this.chatMemory = chatMemory;
         this.metricsCollector = metricsCollector;
     }
 
@@ -124,18 +129,25 @@ public class ChatController {
 
         String actualSessionId = sessionId != null ? sessionId : UUID.randomUUID().toString();
 
+        // 获取历史对话并构造上下文
+        String context = buildContext(actualSessionId, query);
+
         OllamaChatOptions options = OllamaChatOptions.builder()
                 .model("deepseek-r1:8b")
                 .temperature(0.5D)
                 .build();
 
-        Prompt prompt = new Prompt(query, options);
+        // 创建包含上下文的提示
+        Prompt prompt = new Prompt(context, options);
 
         final Flux<ChatResponse> response = ollamaChatModel.stream(prompt);
 
         return response.doOnComplete(() -> {
             long duration = Duration.between(startTime, Instant.now()).toMillis();
             metricsCollector.recordChatDuration("deepseek-r1:8b", "memory-stream-query", duration);
+
+            // 更新历史记录
+            updateHistory(actualSessionId, query, null); // 异步更新
         })
         .map(chatObj -> chatObj.getResult().getOutput().getText());
     }
@@ -158,18 +170,26 @@ public class ChatController {
 
         String actualSessionId = sessionId != null ? sessionId : UUID.randomUUID().toString();
 
+        // 获取历史对话并构造上下文
+        String context = buildContext(actualSessionId, query);
+
         OllamaChatOptions options = OllamaChatOptions.builder()
                 .model("deepseek-r1:8b")
                 .temperature(0.5D)
                 .build();
 
-        Prompt prompt = new Prompt(query, options);
+        // 创建包含上下文的提示
+        Prompt prompt = new Prompt(context, options);
 
         return Mono.fromCallable(() -> {
             ChatResponse response = ollamaChatModel.call(prompt);
-            return response != null && response.getResult() != null && response.getResult().getOutput() != null
+            String result = response != null && response.getResult() != null && response.getResult().getOutput() != null
                     ? response.getResult().getOutput().getText()
                     : "";
+
+            // 更新历史记录
+            updateHistory(actualSessionId, query, result);
+            return result;
         })
         .doOnSuccess(result -> {
             long duration = Duration.between(startTime, Instant.now()).toMillis();
@@ -180,5 +200,45 @@ public class ChatController {
             metricsCollector.recordTokenUsage(tokenCount, "deepseek-r1:8b");
         })
         .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    /**
+     * 构建包含上下文的提示
+     */
+    private String buildContext(String sessionId, String currentQuery) {
+        StringBuilder context = new StringBuilder();
+
+        // 添加系统提示
+        context.append("你是一个有用的AI助手。请基于以下对话历史回答问题。\n\n");
+
+        // 添加历史对话
+        List<String> history = chatHistory.getOrDefault(sessionId, new ArrayList<>());
+        for (String item : history) {
+            context.append(item).append("\n");
+        }
+
+        // 添加当前问题
+        context.append("用户: ").append(currentQuery).append("\n助手:");
+
+        return context.toString();
+    }
+
+    /**
+     * 更新对话历史
+     */
+    private void updateHistory(String sessionId, String query, String response) {
+        chatHistory.computeIfAbsent(sessionId, k -> new ArrayList<>());
+        List<String> history = chatHistory.get(sessionId);
+
+        // 添加新的对话
+        history.add("用户: " + query);
+        if (response != null) {
+            history.add("助手: " + response);
+        }
+
+        // 限制历史记录长度，防止内存溢出
+        if (history.size() > 20) { // 保留最近20条记录
+            history.subList(0, 5).clear(); // 移除最旧的5条记录
+        }
     }
 }

@@ -94,6 +94,20 @@ GET /chat/stream-query?query=你好
 
 # 非流式聊天
 GET /chat/query?query=你好
+
+# 带记忆的流式聊天
+GET /chat/memory/stream-query?query=你好&sessionId={sessionId}
+
+# 带记忆的非流式聊天
+GET /chat/memory/query?query=你好&sessionId={sessionId}
+
+# 结构化天气输出
+POST /structured/weather
+{"city": "Beijing"}
+
+# 结构化文本分析
+POST /structured/analyze
+{"text": "需要分析的文本"}
 ```
 
 **spring-ai-vector**
@@ -115,6 +129,110 @@ Elasticsearch 向量存储使用以下关键参数：
 - `dimensions`：向量维度（nomic-embed-text 为 768，bge-m3 为 1024）
 - `similarity`：`cosine`、`l2_norm` 或 `dot_product`
 - `embedding-field-name`：嵌入向量的自定义字段名
+
+---
+
+## 新增功能 (Phase 1)
+
+### 1. ChatMemory（会话记忆）
+
+#### 功能说明
+- 支持多轮对话历史记录
+- 基于 Session ID 隔离对话上下文
+- 可配置的会话过期时间和历史记录容量
+
+#### 配置属性
+```yaml
+spring:
+  ai:
+    chat:
+      memory:
+        enabled: true              # 启用聊天记忆功能
+        type: in_memory            # 存储类型 (目前使用内存)
+        ttl: 30m                   # 会话过期时间
+        capacity: 10               # 最大历史记录数
+```
+
+#### API 端点
+- `GET /chat/memory/query?query={query}&sessionId={sessionId}`
+- `GET /chat/memory/stream-query?query={query}&sessionId={sessionId}`
+
+### 2. Observability（可观测性）
+
+#### 功能说明
+- 集成 Spring Boot Actuator 监控
+- 支持 Prometheus 指标收集
+- 实时监控 LLM 调用指标
+
+#### 监控指标
+- `spring.ai.chat.duration` - LLM 调用耗时 (tags: model, operation)
+- `spring.ai.chat.calls` - LLM 调用次数 (tags: model, operation) 
+- `spring.ai.tokens.used` - Token 使用量 (tags: model)
+- `spring.ai.sessions.active` - 活跃会话数
+
+#### 监控端点
+```bash
+# 健康检查
+GET /actuator/health
+
+# 所有指标
+GET /actuator/metrics
+
+# Prometheus 格式指标
+GET /actuator/prometheus
+```
+
+#### 配置
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: spring-ai-chat
+      version: 1.0.0
+```
+
+### 3. Structured Output（结构化输出）
+
+#### 功能说明
+- 将 LLM 输出自动转换为 Java POJO
+- 支持复杂嵌套对象和集合类型
+- 提供通用结构化输出接口
+
+#### 支持的数据类型
+- `WeatherData`: 天气信息（城市、温度、状况、预报等）
+- `TextAnalysis`: 文本分析（摘要、关键词、情感、实体等）
+
+#### API 端点
+- `POST /structured/weather` - 天气数据结构化输出
+- `POST /structured/analyze` - 文本分析结构化输出  
+- `POST /structured/convert` - 通用结构化输出
+
+#### 使用示例
+```json
+// POST /structured/weather
+{
+  "city": "Beijing"
+}
+
+// Response
+{
+  "success": true,
+  "data": {
+    "city": "Beijing",
+    "temperature": 25.5,
+    "condition": "Sunny",
+    "forecasts": ["Tomorrow Sunny", "Next Day Cloudy"],
+    "details": {"humidity": 60, "wind": "5km/h"}
+  }
+}
+```
 
 ---
 

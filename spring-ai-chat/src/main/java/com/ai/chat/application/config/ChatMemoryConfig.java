@@ -6,6 +6,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(ChatMemoryProperties.class)
 public class ChatMemoryConfig {
-    // ChatMemory 将由 Spring AI 自动配置
-    // 这里只用于启用配置属性
+    // 配置属性启用，但实际聊天记忆功能在控制器中实现
 }

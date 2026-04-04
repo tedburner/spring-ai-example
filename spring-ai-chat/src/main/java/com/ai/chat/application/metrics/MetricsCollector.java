@@ -11,60 +11,68 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class MetricsCollector {
 
     private final MeterRegistry meterRegistry;
-    private final Timer.Builder chatTimerBuilder;
-    private final Counter.Builder llmCallCounterBuilder;
+
+    // 预创建的指标实例，避免每次记录时重新创建
+    private final Timer chatTimer;
+    private final Counter llmCallCounter;
     private final AtomicInteger activeSessionsCounter;
-    private final DistributionSummary.Builder tokenUsageSummaryBuilder;
+    private final DistributionSummary tokenUsageSummary;
 
     public MetricsCollector(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
 
-        // LLM 调用耗时统计构建器
-        this.chatTimerBuilder = Timer.builder("spring.ai.chat.duration")
-                .description("LLM 调用耗时");
+        // 预创建基础指标
+        this.chatTimer = Timer.builder("spring.ai.chat.duration")
+                .description("LLM 调用耗时")
+                .register(meterRegistry);
 
-        // 调用次数统计构建器
-        this.llmCallCounterBuilder = Counter.builder("spring.ai.chat.calls")
-                .description("LLM 调用次数");
+        this.llmCallCounter = Counter.builder("spring.ai.chat.calls")
+                .description("LLM 调用次数")
+                .register(meterRegistry);
 
-        // Token 使用量统计构建器
-        this.tokenUsageSummaryBuilder = DistributionSummary.builder("spring.ai.tokens.used")
+        this.tokenUsageSummary = DistributionSummary.builder("spring.ai.tokens.used")
                 .description("Token 使用量分布")
-                .baseUnit("tokens");
+                .baseUnit("tokens")
+                .register(meterRegistry);
 
         // 活跃会话数（使用 AtomicInteger 跟踪）
         this.activeSessionsCounter = new AtomicInteger(0);
-        Gauge.builder("spring.ai.sessions.active", activeSessionsCounter, AtomicInteger::get)
+        Gauge.builder("spring.ai.sessions.active", this.activeSessionsCounter, AtomicInteger::get)
                 .description("活跃会话数")
                 .register(meterRegistry);
     }
 
     public void recordChatDuration(String model, String operation, long durationMs) {
-        chatTimerBuilder
+        // 使用预创建的计时器记录耗时
+        Timer.Sample sample = Timer.start(meterRegistry);
+        sample.stop(
+            Timer.builder("spring.ai.chat.duration")
                 .tag("model", model)
                 .tag("operation", operation)
                 .register(meterRegistry)
-                .record(durationMs, TimeUnit.MILLISECONDS);
+        );
     }
 
     public void incrementLlmCall(String model, String operation) {
-        llmCallCounterBuilder
-                .tag("model", model)
-                .tag("operation", operation)
-                .register(meterRegistry)
-                .increment();
+        Counter.builder("spring.ai.chat.calls")
+            .tag("model", model)
+            .tag("operation", operation)
+            .register(meterRegistry)
+            .increment();
     }
 
     public void recordTokenUsage(long tokens, String model) {
-        tokenUsageSummaryBuilder
-                .tag("model", model)
-                .register(meterRegistry)
-                .record(tokens);
+        DistributionSummary.builder("spring.ai.tokens.used")
+            .tag("model", model)
+            .register(meterRegistry)
+            .record(tokens);
     }
 
     public void setActiveSessions(int count) {
@@ -73,5 +81,30 @@ public class MetricsCollector {
 
     public int getActiveSessions() {
         return activeSessionsCounter.get();
+    }
+
+    // 为高频率操作提供更高效的方法
+    public void recordOperation(String model, String operation, long durationMs, long tokens) {
+        // 一次性记录多项指标
+        Timer.Sample sample = Timer.start(meterRegistry);
+        sample.stop(
+            Timer.builder("spring.ai.chat.duration")
+                .tag("model", model)
+                .tag("operation", operation)
+                .register(meterRegistry)
+        );
+
+        Counter.builder("spring.ai.chat.calls")
+            .tag("model", model)
+            .tag("operation", operation)
+            .register(meterRegistry)
+            .increment();
+
+        if (tokens > 0) {
+            DistributionSummary.builder("spring.ai.tokens.used")
+                .tag("model", model)
+                .register(meterRegistry)
+                .record(tokens);
+        }
     }
 }
