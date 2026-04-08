@@ -15,6 +15,15 @@ spring:
         type: in_memory
         ttl: 30m
         capacity: 10
+    # Phase 2A: Prompt Template 配置
+    prompt-template:
+      default-role: "智能助手"
+      templates:
+        analytical: "你是{role}，请对以下内容进行深入分析，给出专业见解：{content}"
+        summarization: "请对以下内容进行简洁总结，突出重点：{content}"
+        translation: "请将以下文本翻译为{targetLanguage}，保持原文的语气和风格：{content}"
+        creative-writing: "请基于主题'{theme}'创作一段{length}字左右的{genre}内容：{content}"
+        code-review: "你是一位经验丰富的代码审查专家。请审查以下代码，指出潜在问题并提供改进建议：{content}"
   main:
     allow-circular-references: true
     allow-bean-definition-overriding: true
