@@ -8,7 +8,7 @@ spring:
       base-url: http://localhost:11434
       chat:
         options:
-          model: deepseek-r1:1.5b
+          model: deepseek-r1:8b
     chat:
       memory:
         enabled: true
@@ -27,6 +27,11 @@ spring:
   main:
     allow-circular-references: true
     allow-bean-definition-overriding: true
+
+# Tavily API 配置
+tavily:
+  api:
+    key: ${TAVILY_API_KEY:}
 
 management:
   endpoints:

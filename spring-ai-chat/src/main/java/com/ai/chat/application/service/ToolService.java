@@ -22,27 +22,33 @@ public class ToolService {
 
     private final Random random = new Random();
 
-    @Tool(description = "获取当前时间，格式: yyyy-MM-dd HH:mm:ss")
+    private final AgentService agentService;
+
+    public ToolService(AgentService agentService) {
+        this.agentService = agentService;
+    }
+
+    @Tool(description = "获取当前时间，格式：yyyy-MM-dd HH:mm:ss")
     public String getCurrentTime() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    @Tool(description = "获取当前日期，格式: yyyy-MM-dd")
+    @Tool(description = "获取当前日期，格式：yyyy-MM-dd")
     public String getCurrentDate() {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
-    @Tool(description = "计算数学表达式，例如: 2+3*4 或 (10-5)/2")
+    @Tool(description = "计算数学表达式，例如：2+3*4 或 (10-5)/2")
     public String calculateMath(@ToolParam(description = "数学表达式") String expression) {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("javascript");
             if (engine == null) {
-                return "错误: 无法初始化计算引擎";
+                return "错误：无法初始化计算引擎";
             }
             Object result = engine.eval(expression);
-            return String.format("计算结果: %s = %s", expression, result);
+            return String.format("计算结果：%s = %s", expression, result);
         } catch (Exception e) {
-            return "计算错误: " + e.getMessage();
+            return "计算错误：" + e.getMessage();
         }
     }
 
@@ -56,28 +62,28 @@ public class ToolService {
         String wind = random.nextInt(30) + "km/h";
 
         return String.format(
-            "城市: %s\n天气: %s\n温度: %d°C\n湿度: %d%%\n风速: %s",
+            "城市：%s\n天气：%s\n温度：%d°C\n湿度：%d%%\n风速：%s",
             city, condition, temperature, humidity, wind
         );
     }
 
-    @Tool(description = "生成随机数，参数: 最小值和最大值")
+    @Tool(description = "生成随机数，参数：最小值和最大值")
     public String generateRandomNumber(
             @ToolParam(description = "最小值") int min,
             @ToolParam(description = "最大值") int max) {
         if (min > max) {
-            return "错误: 最小值不能大于最大值";
+            return "错误：最小值不能大于最大值";
         }
         int randomNumber = min + random.nextInt(max - min + 1);
-        return String.format("随机数(%d-%d): %d", min, max, randomNumber);
+        return String.format("随机数 (%d-%d): %d", min, max, randomNumber);
     }
 
-    @Tool(description = "计算BMI指数，参数: 体重(kg)和身高(m)")
+    @Tool(description = "计算 BMI 指数，参数：体重 (kg) 和身高 (m)")
     public String calculateBMI(
-            @ToolParam(description = "体重，单位: kg") double weight,
-            @ToolParam(description = "身高，单位: m") double height) {
+            @ToolParam(description = "体重，单位：kg") double weight,
+            @ToolParam(description = "身高，单位：m") double height) {
         if (weight <= 0 || height <= 0) {
-            return "错误: 体重和身高必须为正数";
+            return "错误：体重和身高必须为正数";
         }
         double bmi = weight / (height * height);
         String category;
@@ -90,13 +96,13 @@ public class ToolService {
         } else {
             category = "肥胖";
         }
-        return String.format("BMI指数: %.2f (%s)", bmi, category);
+        return String.format("BMI 指数：%.2f (%s)", bmi, category);
     }
 
     @Tool(description = "字符串反转")
     public String reverseString(@ToolParam(description = "要反转的字符串") String input) {
         if (input == null || input.isEmpty()) {
-            return "错误: 输入字符串不能为空";
+            return "错误：输入字符串不能为空";
         }
         return new StringBuilder(input).reverse().toString();
     }
@@ -104,8 +110,13 @@ public class ToolService {
     @Tool(description = "计算字符串长度")
     public String getStringLength(@ToolParam(description = "要计算长度的字符串") String input) {
         if (input == null) {
-            return "字符串长度: 0";
+            return "字符串长度：0";
         }
-        return String.format("字符串长度: %d", input.length());
+        return String.format("字符串长度：%d", input.length());
+    }
+
+    @Tool(description = "使用 Tavily 进行网络搜索，获取最新信息和实时数据")
+    public String tavilySearch(@ToolParam(description = "搜索查询词") String query) {
+        return agentService.searchWeb(query);
     }
 }

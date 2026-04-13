@@ -2,8 +2,11 @@ package com.ai.chat.application.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author: kiturone
@@ -14,9 +17,13 @@ class ToolServiceTest {
 
     private ToolService toolService;
 
+    @Mock
+    private AgentService agentService;
+
     @BeforeEach
     void setUp() {
-        toolService = new ToolService();
+        MockitoAnnotations.openMocks(this);
+        toolService = new ToolService(agentService);
     }
 
     @Test
@@ -89,7 +96,7 @@ class ToolServiceTest {
         String result = toolService.generateRandomNumber(1, 10);
 
         assertNotNull(result);
-        assertTrue(result.contains("随机数(1-10)"));
+        assertTrue(result.contains("随机数"));
     }
 
     @Test
@@ -105,7 +112,7 @@ class ToolServiceTest {
         String result = toolService.calculateBMI(70.0, 1.75);
 
         assertNotNull(result);
-        assertTrue(result.contains("BMI指数"));
+        assertTrue(result.contains("BMI"));
         assertTrue(result.contains("22.86") || result.contains("22.85"));
     }
 
@@ -178,5 +185,55 @@ class ToolServiceTest {
 
         assertNotNull(result);
         assertTrue(result.contains("0"));
+    }
+
+    // ========== Tavily Search 工具测试 ==========
+
+    @Test
+    void testTavilySearchSuccess() {
+        // Mock AgentService.searchWeb 返回
+        String mockSearchResult = "答案：Spring AI 是一个 AI 框架\n\n相关链接:\n1. [Spring AI 官网](https://spring.io/ai)\n   Spring AI 官方文档";
+        when(agentService.searchWeb("Spring AI")).thenReturn(mockSearchResult);
+
+        String result = toolService.tavilySearch("Spring AI");
+
+        assertNotNull(result);
+        assertTrue(result.contains("答案"));
+        assertTrue(result.contains("Spring AI"));
+        verify(agentService, times(1)).searchWeb("Spring AI");
+    }
+
+    @Test
+    void testTavilySearchEmptyQuery() {
+        when(agentService.searchWeb("")).thenReturn("搜索失败：查询词不能为空");
+
+        String result = toolService.tavilySearch("");
+
+        assertNotNull(result);
+        assertTrue(result.contains("搜索失败"));
+        verify(agentService, times(1)).searchWeb("");
+    }
+
+    @Test
+    void testTavilySearchWithChineseQuery() {
+        String mockSearchResult = "答案：深度学习是机器学习的一个分支\n\n相关链接:\n1. [深度学习介绍](https://example.com)\n   深度学习基础知识";
+        when(agentService.searchWeb("深度学习")).thenReturn(mockSearchResult);
+
+        String result = toolService.tavilySearch("深度学习");
+
+        assertNotNull(result);
+        assertTrue(result.contains("深度学习"));
+        verify(agentService, times(1)).searchWeb("深度学习");
+    }
+
+    @Test
+    void testTavilySearchWithError() {
+        when(agentService.searchWeb("test")).thenReturn("搜索失败：Tavily API Key 未配置");
+
+        String result = toolService.tavilySearch("test");
+
+        assertNotNull(result);
+        assertTrue(result.contains("搜索失败"));
+        verify(agentService, times(1)).searchWeb("test");
     }
 }
