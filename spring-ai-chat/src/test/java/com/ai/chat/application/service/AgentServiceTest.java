@@ -34,6 +34,9 @@ class AgentServiceTest {
     @Mock
     private ToolCallbackProvider toolCallbackProvider;
 
+    @Mock
+    private TavilyService tavilyService;
+
     private AgentService agentService;
 
     @BeforeEach
@@ -47,7 +50,7 @@ class AgentServiceTest {
         agentService = new AgentService(
                 chatClientBuilder,
                 List.of(toolCallbackProvider),
-                "test-tavily-api-key"
+                tavilyService
         );
     }
 
@@ -65,7 +68,7 @@ class AgentServiceTest {
         AgentService serviceWithoutTools = new AgentService(
                 chatClientBuilder,
                 null,
-                "test-key"
+                tavilyService
         );
 
         assertNotNull(serviceWithoutTools);
@@ -76,48 +79,16 @@ class AgentServiceTest {
         AgentService serviceWithEmptyTools = new AgentService(
                 chatClientBuilder,
                 List.of(),
-                "test-key"
+                tavilyService
         );
 
         assertNotNull(serviceWithEmptyTools);
     }
 
-    @Test
-    void testAgentServiceWithNullApiKey() {
-        AgentService serviceWithoutKey = new AgentService(
-                chatClientBuilder,
-                List.of(toolCallbackProvider),
-                null
-        );
-
-        assertNotNull(serviceWithoutKey);
-    }
-
-    // ========== Tavily 搜索测试 ==========
+    // ========== Tavily 搜索测试（委托给 TavilyService） ==========
 
     @Test
-    void testTavilySearchWithEmptyApiKey() {
-        // 创建一个没有 API Key 的 AgentService
-        AgentService serviceWithoutKey = new AgentService(
-                chatClientBuilder,
-                List.of(toolCallbackProvider),
-                ""  // 空 API Key
-        );
-
-        TavilySearchRequest request = TavilySearchRequest.builder()
-                .query("test")
-                .maxResults(5)
-                .searchDepth("basic")
-                .includeAnswer(true)
-                .build();
-
-        assertThrows(IllegalStateException.class, () -> {
-            serviceWithoutKey.tavilySearch(request);
-        });
-    }
-
-    @Test
-    void testTavilySearchWithValidApiKeyButNetworkError() {
+    void testTavilySearchDelegatesToTavilyService() {
         TavilySearchRequest request = TavilySearchRequest.builder()
                 .query("Spring AI")
                 .maxResults(5)
@@ -125,19 +96,44 @@ class AgentServiceTest {
                 .includeAnswer(true)
                 .build();
 
-        // 由于 RestClient 会尝试真实连接，会抛出异常
-        assertThrows(RuntimeException.class, () -> {
-            agentService.tavilySearch(request);
-        });
+        TavilySearchResponse mockResponse = TavilySearchResponse.builder()
+                .query("Spring AI")
+                .answer("Spring AI 是一个框架")
+                .build();
+
+        when(tavilyService.tavilySearch(request)).thenReturn(mockResponse);
+
+        TavilySearchResponse result = agentService.tavilySearch(request);
+
+        assertNotNull(result);
+        assertEquals("Spring AI", result.getQuery());
+        verify(tavilyService, times(1)).tavilySearch(request);
     }
 
     @Test
-    void testSearchWebReturnsErrorOnFailure() {
-        // searchWeb 内部捕获异常并返回 "搜索失败：..." 格式的字符串
-        String result = agentService.searchWeb("test query");
+    void testSearchWebDelegatesToTavilyService() {
+        String mockResult = "答案：Spring AI 是一个框架";
+        when(tavilyService.searchWeb("Spring AI")).thenReturn(mockResult);
+
+        String result = agentService.searchWeb("Spring AI");
 
         assertNotNull(result);
-        assertTrue(result.contains("搜索失败"));
+        assertEquals(mockResult, result);
+        verify(tavilyService, times(1)).searchWeb("Spring AI");
+    }
+
+    @Test
+    void testTavilySearchWithException() {
+        TavilySearchRequest request = TavilySearchRequest.builder()
+                .query("test")
+                .build();
+
+        when(tavilyService.tavilySearch(request))
+                .thenThrow(new IllegalStateException("Tavily API Key 未配置"));
+
+        assertThrows(IllegalStateException.class, () -> {
+            agentService.tavilySearch(request);
+        });
     }
 
     // ========== 请求 DTO 测试 ==========

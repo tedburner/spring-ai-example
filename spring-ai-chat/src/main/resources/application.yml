@@ -25,7 +25,6 @@ spring:
         creative-writing: "请基于主题'{theme}'创作一段{length}字左右的{genre}内容：{content}"
         code-review: "你是一位经验丰富的代码审查专家。请审查以下代码，指出潜在问题并提供改进建议：{content}"
   main:
-    allow-circular-references: true
     allow-bean-definition-overriding: true
 
 # Tavily API 配置

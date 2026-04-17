@@ -18,12 +18,12 @@ class ToolServiceTest {
     private ToolService toolService;
 
     @Mock
-    private AgentService agentService;
+    private TavilyService tavilyService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        toolService = new ToolService(agentService);
+        toolService = new ToolService(tavilyService);
     }
 
     @Test
@@ -191,49 +191,49 @@ class ToolServiceTest {
 
     @Test
     void testTavilySearchSuccess() {
-        // Mock AgentService.searchWeb 返回
-        String mockSearchResult = "答案：Spring AI 是一个 AI 框架\n\n相关链接:\n1. [Spring AI 官网](https://spring.io/ai)\n   Spring AI 官方文档";
-        when(agentService.searchWeb("Spring AI")).thenReturn(mockSearchResult);
+        // Mock TavilyService.searchWeb 返回
+        String mockSearchResult = "答案：Spring AI 是一个 AI 框架\n\n相关链接：\n1. [Spring AI 官网](https://spring.io/ai)\n   Spring AI 官方文档";
+        when(tavilyService.searchWeb("Spring AI")).thenReturn(mockSearchResult);
 
         String result = toolService.tavilySearch("Spring AI");
 
         assertNotNull(result);
         assertTrue(result.contains("答案"));
         assertTrue(result.contains("Spring AI"));
-        verify(agentService, times(1)).searchWeb("Spring AI");
+        verify(tavilyService, times(1)).searchWeb("Spring AI");
     }
 
     @Test
     void testTavilySearchEmptyQuery() {
-        when(agentService.searchWeb("")).thenReturn("搜索失败：查询词不能为空");
+        when(tavilyService.searchWeb("")).thenReturn("搜索失败：查询词不能为空");
 
         String result = toolService.tavilySearch("");
 
         assertNotNull(result);
         assertTrue(result.contains("搜索失败"));
-        verify(agentService, times(1)).searchWeb("");
+        verify(tavilyService, times(1)).searchWeb("");
     }
 
     @Test
     void testTavilySearchWithChineseQuery() {
-        String mockSearchResult = "答案：深度学习是机器学习的一个分支\n\n相关链接:\n1. [深度学习介绍](https://example.com)\n   深度学习基础知识";
-        when(agentService.searchWeb("深度学习")).thenReturn(mockSearchResult);
+        String mockSearchResult = "答案：深度学习是机器学习的一个分支\n\n相关链接：\n1. [深度学习介绍](https://example.com)\n   深度学习基础知识";
+        when(tavilyService.searchWeb("深度学习")).thenReturn(mockSearchResult);
 
         String result = toolService.tavilySearch("深度学习");
 
         assertNotNull(result);
         assertTrue(result.contains("深度学习"));
-        verify(agentService, times(1)).searchWeb("深度学习");
+        verify(tavilyService, times(1)).searchWeb("深度学习");
     }
 
     @Test
     void testTavilySearchWithError() {
-        when(agentService.searchWeb("test")).thenReturn("搜索失败：Tavily API Key 未配置");
+        when(tavilyService.searchWeb("test")).thenReturn("搜索失败：Tavily API Key 未配置");
 
         String result = toolService.tavilySearch("test");
 
         assertNotNull(result);
         assertTrue(result.contains("搜索失败"));
-        verify(agentService, times(1)).searchWeb("test");
+        verify(tavilyService, times(1)).searchWeb("test");
     }
 }

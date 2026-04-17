@@ -1,6 +1,5 @@
 package com.ai.chat.application.config;
 
-import com.ai.chat.application.service.AgentService;
 import com.ai.chat.application.service.ToolService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -34,14 +33,5 @@ public class AgentConfig {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(toolService)
                 .build();
-    }
-
-    /**
-     * Agent 服务 Bean
-     */
-    @Bean
-    public AgentService agentService(ChatClient.Builder builder,
-                                    ToolCallbackProvider toolCallbackProvider) {
-        return new AgentService(builder, java.util.List.of(toolCallbackProvider), null);
     }
 }

@@ -22,10 +22,10 @@ public class ToolService {
 
     private final Random random = new Random();
 
-    private final AgentService agentService;
+    private final TavilyService tavilyService;
 
-    public ToolService(AgentService agentService) {
-        this.agentService = agentService;
+    public ToolService(TavilyService tavilyService) {
+        this.tavilyService = tavilyService;
     }
 
     @Tool(description = "获取当前时间，格式：yyyy-MM-dd HH:mm:ss")
@@ -117,6 +117,6 @@ public class ToolService {
 
     @Tool(description = "使用 Tavily 进行网络搜索，获取最新信息和实时数据")
     public String tavilySearch(@ToolParam(description = "搜索查询词") String query) {
-        return agentService.searchWeb(query);
+        return tavilyService.searchWeb(query);
     }
 }
