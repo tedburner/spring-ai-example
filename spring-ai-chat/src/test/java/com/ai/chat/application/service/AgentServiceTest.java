@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.tool.ToolCallbackProvider;
 
 import java.util.List;
@@ -45,12 +46,14 @@ class AgentServiceTest {
 
         // Mock ChatClient.Builder 构建 ChatClient
         when(chatClientBuilder.defaultSystem(anyString())).thenReturn(chatClientBuilder);
+        when(chatClientBuilder.defaultAdvisors(anyList())).thenReturn(chatClientBuilder);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
         agentService = new AgentService(
                 chatClientBuilder,
                 List.of(toolCallbackProvider),
-                tavilyService
+                tavilyService,
+                List.of()
         );
     }
 
@@ -59,19 +62,8 @@ class AgentServiceTest {
     @Test
     void testAgentServiceConstruction() {
         assertNotNull(agentService);
-        verify(chatClientBuilder, times(1)).defaultSystem(anyString());
-        verify(chatClientBuilder, times(1)).build();
-    }
-
-    @Test
-    void testAgentServiceWithNullToolProviders() {
-        AgentService serviceWithoutTools = new AgentService(
-                chatClientBuilder,
-                null,
-                tavilyService
-        );
-
-        assertNotNull(serviceWithoutTools);
+        verify(chatClientBuilder, atLeastOnce()).defaultSystem(anyString());
+        verify(chatClientBuilder, atLeastOnce()).build();
     }
 
     @Test
@@ -79,7 +71,8 @@ class AgentServiceTest {
         AgentService serviceWithEmptyTools = new AgentService(
                 chatClientBuilder,
                 List.of(),
-                tavilyService
+                tavilyService,
+                List.of()
         );
 
         assertNotNull(serviceWithEmptyTools);

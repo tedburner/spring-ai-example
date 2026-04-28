@@ -72,7 +72,7 @@ public class AgentController {
     @PostMapping("/chat/memory")
     public Mono<WebResult> chatWithMemory(@RequestBody AgentChatRequest request) {
         try {
-            String response = agentService.chatWithMemory(request, request.getSessionId());
+            String response = agentService.chatWithMemory(request);
             return Mono.just(WebResult.buildSuccess(Map.of(
                     "message", response,
                     "sessionId", request.getSessionId()

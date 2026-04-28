@@ -36,4 +36,10 @@ public class DocumentRagController {
         final DocumentRagResultVO data = documentRagApplicationService.parse(file);
         return WebResult.buildSuccess(data);
     }
+
+    @RequestMapping("/v1/test")
+    public WebResult test(@RequestParam("file") MultipartFile file) {
+        final DocumentRagResultVO data = documentRagApplicationService.parse(file);
+        return WebResult.buildSuccess(data);
+    }
 }

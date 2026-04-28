@@ -2,6 +2,7 @@ package com.ai.chat.application.interceptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -62,8 +63,9 @@ public class RateLimitingInterceptorService {
     }
 
     /**
-     * 清理过期的会话记录（可定期调用）
+     * 清理过期的会话记录（定期自动调用）
      */
+    @Scheduled(fixedRate = 300000)
     public void cleanupExpiredSessions() {
         long currentTime = System.currentTimeMillis();
         requestStatsMap.entrySet().removeIf(entry ->

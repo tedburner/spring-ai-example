@@ -4,8 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.util.List;
-
 /**
  * Advisor 增强查询请求
  *
@@ -25,14 +23,4 @@ public class AdvisedQueryRequest {
      * 会话ID
      */
     private String sessionId;
-
-    /**
-     * 是否启用 Advisors
-     */
-    private boolean useAdvisors = true;
-
-    /**
-     * 选中的 Advisors（可选）
-     */
-    private List<String> selectedAdvisors;
 }

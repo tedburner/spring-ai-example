@@ -110,7 +110,7 @@ class AgentControllerTest {
 
     @Test
     void testChatWithMemorySuccess() {
-        when(agentService.chatWithMemory(any(AgentChatRequest.class), anyString()))
+        when(agentService.chatWithMemory(any(AgentChatRequest.class)))
                 .thenReturn("记住你之前说过的内容");
 
         webTestClient.post().uri("/agent/chat/memory")
@@ -123,12 +123,12 @@ class AgentControllerTest {
                 .jsonPath("$.data.message").isEqualTo("记住你之前说过的内容")
                 .jsonPath("$.data.sessionId").isEqualTo("session-456");
 
-        verify(agentService, times(1)).chatWithMemory(any(AgentChatRequest.class), anyString());
+        verify(agentService, times(1)).chatWithMemory(any(AgentChatRequest.class));
     }
 
     @Test
     void testChatWithMemoryError() {
-        when(agentService.chatWithMemory(any(AgentChatRequest.class), anyString()))
+        when(agentService.chatWithMemory(any(AgentChatRequest.class)))
                 .thenThrow(new IllegalStateException("会话过期"));
 
         webTestClient.post().uri("/agent/chat/memory")
@@ -140,7 +140,7 @@ class AgentControllerTest {
                 .jsonPath("$.status_code").isEqualTo(-1)
                 .jsonPath("$.data").isEqualTo("Agent 带记忆对话失败：会话过期");
 
-        verify(agentService, times(1)).chatWithMemory(any(AgentChatRequest.class), anyString());
+        verify(agentService, times(1)).chatWithMemory(any(AgentChatRequest.class));
     }
 
     // ========== POST /agent/tavily/search 测试 ==========

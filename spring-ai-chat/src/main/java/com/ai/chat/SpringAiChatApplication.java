@@ -3,6 +3,7 @@ package com.ai.chat;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import com.ai.chat.application.config.ChatMemoryProperties;
 import com.ai.chat.application.config.PromptTemplateProperties;
 
@@ -13,6 +14,7 @@ import com.ai.chat.application.config.PromptTemplateProperties;
  * @date 2025/5/2 18:05
  */
 @SpringBootApplication
+@EnableScheduling
 @EnableConfigurationProperties({ChatMemoryProperties.class, PromptTemplateProperties.class})
 public class SpringAiChatApplication {
 
