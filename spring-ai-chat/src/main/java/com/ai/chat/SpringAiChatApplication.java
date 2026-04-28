@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import com.ai.chat.application.config.ChatMemoryProperties;
+import com.ai.chat.application.config.PromptPatternOptions;
 import com.ai.chat.application.config.PromptTemplateProperties;
 
 /**
@@ -15,7 +16,7 @@ import com.ai.chat.application.config.PromptTemplateProperties;
  */
 @SpringBootApplication
 @EnableScheduling
-@EnableConfigurationProperties({ChatMemoryProperties.class, PromptTemplateProperties.class})
+@EnableConfigurationProperties({ChatMemoryProperties.class, PromptTemplateProperties.class, PromptPatternOptions.class})
 public class SpringAiChatApplication {
 
     public static void main(String[] args) {

@@ -24,6 +24,30 @@ spring:
         translation: "请将以下文本翻译为{targetLanguage}，保持原文的语气和风格：{content}"
         creative-writing: "请基于主题'{theme}'创作一段{length}字左右的{genre}内容：{content}"
         code-review: "你是一位经验丰富的代码审查专家。请审查以下代码，指出潜在问题并提供改进建议：{content}"
+    # Prompt Engineering Pattern 预设
+    prompt-pattern:
+      presets:
+        zero-shot:
+          temperature: 0.1
+          max-tokens: 5
+        few-shot:
+          temperature: 0.1
+          max-tokens: 250
+        creative:
+          temperature: 1.0
+          top-k: 40
+          max-tokens: 1024
+        code:
+          temperature: 0.1
+          max-tokens: 1024
+        reasoning:
+          temperature: 0.7
+          max-tokens: 500
+        self-consistency:
+          temperature: 1.0
+          top-k: 60
+          max-tokens: 1024
+          votes: 5
   main:
     allow-bean-definition-overriding: true
 
