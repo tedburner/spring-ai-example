@@ -1,19 +1,31 @@
-# Getting Started
+# Spring AI OpenManus
 
-### Reference Documentation
+OpenManus 集成模块，基于 Spring AI 1.1.5 和 Spring Boot 3.5.5。
 
-For further reference, please consider the following sections:
+## 技术栈
 
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.0/maven-plugin)
-* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.0/maven-plugin/build-image.html)
-* [Ollama](https://docs.spring.io/spring-ai/reference/api/chat/ollama-chat.html)
+| 技术 | 版本 |
+|------|------|
+| Java | 17 |
+| Spring Boot | 3.5.5 |
+| Spring AI | 1.1.5 |
+| Ollama | 本地大模型 |
 
-### Maven Parent overrides
+## 快速开始
 
-Due to Maven's design, elements are inherited from the parent POM to the project POM.
-While most of the inheritance is fine, it also inherits unwanted elements like `<license>` and `<developers>` from the
-parent.
-To prevent this, the project POM contains empty overrides for these elements.
-If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
+```bash
+cd spring-ai-openmanus
+mvn spring-boot:run
+```
 
+## 配置
+
+```yaml
+spring:
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: deepseek-r1:8b
+```

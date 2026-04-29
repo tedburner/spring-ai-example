@@ -1,6 +1,6 @@
 # Spring AI Chat 模块
 
-基于 Spring AI 1.1.4 的聊天模块，支持 Ollama 本地大模型、Agent 工具调用、Tavily 网络搜索等功能。
+基于 Spring AI 1.1.5 的聊天模块，支持 Ollama 本地大模型、Agent 工具调用、Tavily 网络搜索、Prompt Engineering Patterns 和 Agentic Workflows 等功能。
 
 ## 快速开始
 
@@ -64,6 +64,35 @@ mvn spring-boot:run
 | `POST /agent/tavily/search` | Tavily 网络搜索 |
 | `GET /agent/tavily/search?query=AI news` | 简化的搜索接口 |
 
+### Agent 工作流
+
+| 端点 | 说明 |
+|------|------|
+| `POST /agent/workflow/chain` | 链式工作流（顺序 LLM 管道） |
+| `POST /agent/workflow/parallel/sectioning` | 并行分段（并发子任务） |
+| `POST /agent/workflow/parallel/voting` | 并行投票（多调用取共识） |
+| `POST /agent/workflow/routing` | 路由分类（JSON 分类 + 路由） |
+
+### Prompt Engineering Patterns
+
+| 端点 | 说明 |
+|------|------|
+| `POST /pattern/invoke` | 统一 Pattern 调用 |
+| `POST /pattern/zero-shot` | Zero-shot Prompting |
+| `POST /pattern/few-shot` | Few-shot Prompting |
+| `POST /pattern/system` | System Prompting |
+| `POST /pattern/role` | Role Prompting |
+| `POST /pattern/contextual` | Contextual Prompting |
+| `POST /pattern/cot` | Chain of Thought |
+| `POST /pattern/code/write` | 代码生成 |
+| `POST /pattern/code/explain` | 代码解释 |
+| `POST /pattern/code/translate` | 代码翻译 |
+| `POST /pattern/step-back` | Step-back Prompting |
+| `POST /pattern/self-consistency` | 自一致性 |
+| `POST /pattern/tree-of-thoughts` | 思维树（Tree of Thoughts） |
+| `POST /pattern/auto-prompt` | 自动 Prompt 工程 |
+| `GET /pattern/types` | 获取所有 Pattern 类型 |
+
 ### 结构化输出
 
 | 端点 | 说明 |
@@ -114,7 +143,7 @@ curl -X POST http://localhost:8100/agent/stream \
 ```bash
 curl -X POST http://localhost:8100/agent/tavily/search \
   -H "Content-Type: application/json" \
-  -d '{"query": "Spring AI 1.1.4 new features", "maxResults": 5}'
+  -d '{"query": "Spring AI 1.1.5 new features", "maxResults": 5}'
 ```
 
 ---
@@ -185,11 +214,17 @@ spring-ai-chat/
 │   │   ├── config/
 │   │   │   ├── AgentConfig.java          # Agent 配置
 │   │   │   ├── ChatMemoryConfig.java
+│   │   │   ├── PromptPatternOptions.java # Prompt Pattern 配置
 │   │   │   └── PromptTemplateConfig.java
 │   │   ├── service/
 │   │   │   ├── AgentService.java         # Agent 核心服务
 │   │   │   ├── ToolService.java          # 工具服务
+│   │   │   ├── WorkflowService.java      # 工作流编排
+│   │   │   ├── PromptPatternService.java # Prompt Pattern 服务
 │   │   │   └── ...
+│   │   ├── advisor/
+│   │   │   ├── AugmentedToolCallback.java      # 工具参数增强
+│   │   │   └── AugmentedToolCallbackProvider.java
 │   │   └── interceptor/                  # 拦截器（限流、验证等）
 │   │
 │   ├── domain/
@@ -202,10 +237,18 @@ spring-ai-chat/
 │   ├── interfaces/
 │   │   ├── controller/
 │   │   │   ├── AgentController.java      # Agent REST 控制器
-│   │   │   └── ChatController.java
+│   │   │   ├── ChatController.java
+│   │   │   └── PromptPatternController.java  # Prompt Pattern 端点
 │   │   └── dto/
 │   │       ├── AgentChatRequest.java     # Agent 请求 DTO
-│   │       └── TavilySearchRequest.java  # 搜索请求 DTO
+│   │       ├── TavilySearchRequest.java  # 搜索请求 DTO
+│   │       ├── PromptPatternRequest.java # Prompt Pattern 请求
+│   │       ├── PromptPatternResponse.java # Prompt Pattern 响应
+│   │       └── service/dto/              # 工作流 DTO
+│   │           ├── ChainResult.java
+│   │           ├── ParallelResult.java
+│   │           ├── RouteClassification.java
+│   │           └── RoutingDecision.java
 │   │
 │   └── SpringAiChatApplication.java
 │
@@ -220,7 +263,7 @@ spring-ai-chat/
 ## 技术栈
 
 - **Spring Boot**: 3.5.5
-- **Spring AI**: 1.1.4
+- **Spring AI**: 1.1.5
 - **Ollama**: 本地大模型运行环境
 - **WebFlux**: 响应式 Web 框架
 - **Lombok**: 简化 Java 代码

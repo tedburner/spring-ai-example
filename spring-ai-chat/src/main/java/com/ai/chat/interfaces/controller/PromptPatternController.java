@@ -117,7 +117,7 @@ public class PromptPatternController {
      */
     @PostMapping("/code/write")
     public WebResult codeWrite(@RequestBody PromptPatternRequest request) {
-        String language = request.getTargetLanguage() != null ? request.getTargetLanguage() : "Java";
+        String language = defaultIfNull(request.getTargetLanguage(), "Java");
         LOGGER.info("Code Write: language={}", language);
         String result = patternService.codeWriting(request.getPrompt(), language);
         return WebResult.buildSuccess(new PromptPatternResponse("code-write", result, "code"));
@@ -138,7 +138,7 @@ public class PromptPatternController {
      */
     @PostMapping("/code/translate")
     public WebResult codeTranslate(@RequestBody PromptPatternRequest request) {
-        String targetLanguage = request.getTargetLanguage() != null ? request.getTargetLanguage() : "Python";
+        String targetLanguage = defaultIfNull(request.getTargetLanguage(), "Python");
         LOGGER.info("Code Translate: to={}", targetLanguage);
         String result = patternService.codeTranslating(request.getCode(), targetLanguage);
         return WebResult.buildSuccess(new PromptPatternResponse("code-translate", result, "code"));
@@ -159,7 +159,7 @@ public class PromptPatternController {
      */
     @PostMapping("/self-consistency")
     public WebResult selfConsistency(@RequestBody PromptPatternRequest request) {
-        int votes = request.getCount() != null ? request.getCount() : 5;
+        int votes = defaultIfNull(request.getCount(), 5);
         LOGGER.info("Self-Consistency: votes={}", votes);
         String result = workflowService.selfConsistency(request.getPrompt(), votes, null);
         return WebResult.buildSuccess(new PromptPatternResponse("self-consistency", result, "self-consistency"));
@@ -170,7 +170,7 @@ public class PromptPatternController {
      */
     @PostMapping("/tree-of-thoughts")
     public WebResult treeOfThoughts(@RequestBody PromptPatternRequest request) {
-        int branches = request.getCount() != null ? request.getCount() : 3;
+        int branches = defaultIfNull(request.getCount(), 3);
         LOGGER.info("Tree of Thoughts: branches={}", branches);
         String result = workflowService.treeOfThoughts(request.getPrompt(), branches);
         return WebResult.buildSuccess(new PromptPatternResponse("tree-of-thoughts", result, "reasoning"));
@@ -181,7 +181,7 @@ public class PromptPatternController {
      */
     @PostMapping("/auto-prompt")
     public WebResult autoPrompt(@RequestBody PromptPatternRequest request) {
-        int variants = request.getCount() != null ? request.getCount() : 5;
+        int variants = defaultIfNull(request.getCount(), 5);
         LOGGER.info("Auto Prompt: variants={}", variants);
         String result = workflowService.autoPromptEngineering(request.getPrompt(), variants);
         return WebResult.buildSuccess(new PromptPatternResponse("auto-prompt", result, "creative"));
@@ -223,14 +223,18 @@ public class PromptPatternController {
             case "cot" -> request.getCotExample() != null && !request.getCotExample().isBlank()
                     ? patternService.chainOfThoughtFewShot(request.getCotExample(), request.getPrompt())
                     : patternService.chainOfThought(request.getPrompt());
-            case "code-write" -> patternService.codeWriting(request.getPrompt(), request.getTargetLanguage() != null ? request.getTargetLanguage() : "Java");
+            case "code-write" -> patternService.codeWriting(request.getPrompt(), defaultIfNull(request.getTargetLanguage(), "Java"));
             case "code-explain" -> patternService.codeExplaining(request.getCode());
-            case "code-translate" -> patternService.codeTranslating(request.getCode(), request.getTargetLanguage() != null ? request.getTargetLanguage() : "Python");
+            case "code-translate" -> patternService.codeTranslating(request.getCode(), defaultIfNull(request.getTargetLanguage(), "Python"));
             case "step-back" -> workflowService.stepBack(request.getPrompt());
-            case "self-consistency" -> workflowService.selfConsistency(request.getPrompt(), request.getCount() != null ? request.getCount() : 5, null);
-            case "tree-of-thoughts" -> workflowService.treeOfThoughts(request.getPrompt(), request.getCount() != null ? request.getCount() : 3);
-            case "auto-prompt" -> workflowService.autoPromptEngineering(request.getPrompt(), request.getCount() != null ? request.getCount() : 5);
+            case "self-consistency" -> workflowService.selfConsistency(request.getPrompt(), defaultIfNull(request.getCount(), 5), null);
+            case "tree-of-thoughts" -> workflowService.treeOfThoughts(request.getPrompt(), defaultIfNull(request.getCount(), 3));
+            case "auto-prompt" -> workflowService.autoPromptEngineering(request.getPrompt(), defaultIfNull(request.getCount(), 5));
             default -> throw new IllegalArgumentException("Unknown pattern type: " + request.getType());
         };
+    }
+
+    private <T> T defaultIfNull(T value, T defaultValue) {
+        return value != null ? value : defaultValue;
     }
 }

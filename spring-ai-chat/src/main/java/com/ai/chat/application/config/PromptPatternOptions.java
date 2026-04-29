@@ -35,9 +35,6 @@ public class PromptPatternOptions {
         this.presets = presets;
     }
 
-    /**
-     * 获取指定 Pattern 的配置，不存在时返回 null
-     */
     public PatternConfig get(String patternName) {
         return presets.get(patternName);
     }

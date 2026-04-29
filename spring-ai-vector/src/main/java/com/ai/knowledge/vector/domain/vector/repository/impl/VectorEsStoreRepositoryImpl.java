@@ -11,7 +11,6 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStore;
 import org.springframework.ai.vectorstore.elasticsearch.autoconfigure.ElasticsearchVectorStoreProperties;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -82,14 +81,35 @@ public class VectorEsStoreRepositoryImpl implements VectorStoreRepository {
     }
 
     @Override
+    public VectorStoreResultDTO store(List<Document> documents) {
+        VectorStoreResultDTO result = new VectorStoreResultDTO();
+        try {
+            elasticsearchVectorStore.add(documents);
+            result.setSuccess(documents.size());
+        } catch (Exception e) {
+            LOGGER.error("批量向ES保存向量数据异常", e);
+            result.setFail(documents.size());
+        }
+        return result;
+    }
+
+    @Override
     public List<Document> retrieval(String text, Integer topK, double threshold) {
         SearchRequest searchRequest = SearchRequest.builder()
-                // 向量召回前多少
+                .query(text)
                 .topK(Optional.ofNullable(topK).orElse(5))
-                // 相似度阈值
                 .similarityThreshold(threshold)
-                .filterExpression(new FilterExpressionBuilder().eq(textField, text).build())
                 .build();
-        return  elasticsearchVectorStore.doSimilaritySearch(searchRequest);
+        return elasticsearchVectorStore.similaritySearch(searchRequest);
+    }
+
+    @Override
+    public List<Document> retrievalWithScore(String text, Integer topK, double threshold) {
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query(text)
+                .topK(Optional.ofNullable(topK).orElse(5))
+                .similarityThreshold(threshold)
+                .build();
+        return elasticsearchVectorStore.similaritySearch(searchRequest);
     }
 }

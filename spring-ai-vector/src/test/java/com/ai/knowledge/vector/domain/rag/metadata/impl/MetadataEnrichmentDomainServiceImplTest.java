@@ -39,7 +39,7 @@ class MetadataEnrichmentDomainServiceImplTest {
 
         // Then
         assertNotNull(enrichedDoc);
-        assertEquals("Sample content", enrichedDoc.getFormattedContent());
+        assertEquals("Sample content", enrichedDoc.getText());
         assertTrue(enrichedDoc.getMetadata().containsKey("author"));
         assertEquals("John Doe", enrichedDoc.getMetadata().get("author"));
         assertEquals("technical", enrichedDoc.getMetadata().get("category"));
@@ -62,7 +62,7 @@ class MetadataEnrichmentDomainServiceImplTest {
 
         // Then
         assertNotNull(enrichedDoc);
-        assertEquals("Sample content", enrichedDoc.getFormattedContent());
+        assertEquals("Sample content", enrichedDoc.getText());
         assertEquals("Jane Smith", enrichedDoc.getMetadata().get("author"));
         assertEquals("business", enrichedDoc.getMetadata().get("category"));
     }

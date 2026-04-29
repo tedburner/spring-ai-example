@@ -13,32 +13,26 @@ public interface VectorStoreRepository {
 
     /**
      * 单条文本向量化存储
-     * <p>
-     * spring ai 框架自动进行了文本向量化
-     *
-     * @param text 文本
-     * @return 存储结果
      */
     VectorStoreResultDTO store(String text);
 
     /**
-     * 单条文本向量化存储
-     * <p>
-     * 自己执行elasticsearch 进行文本存储
-     *
-     * @param text      文本
-     * @param embedding 向量化内容
-     * @return 存储结果
+     * 单条文本向量化存储（手动 embedding）
      */
     VectorStoreResultDTO store(String text, float[] embedding);
 
     /**
+     * 批量文档向量化存储
+     */
+    VectorStoreResultDTO store(List<Document> documents);
+
+    /**
      * 向量检索
-     *
-     * @param text      检索文本
-     * @param topK      检索内容
-     * @param threshold 相似度阈值
-     * @return 向量搜索结果
      */
     List<Document> retrieval(String text, Integer topK, double threshold);
+
+    /**
+     * 向量检索（返回带相似度分数）
+     */
+    List<Document> retrievalWithScore(String text, Integer topK, double threshold);
 }

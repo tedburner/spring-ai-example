@@ -27,7 +27,7 @@ public class MetadataEnrichmentDomainServiceImpl implements MetadataEnrichmentDo
         Map<String, Object> mergedMetadata = mergeMetadata(document.getMetadata(), metadata);
 
         // 使用文档的原始内容和合并后的元数据创建新文档
-        return new Document(document.getFormattedContent(), mergedMetadata);
+        return new Document(document.getText(), mergedMetadata);
     }
 
     @Override

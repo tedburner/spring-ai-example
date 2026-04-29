@@ -48,7 +48,7 @@ src/main/java/
 
 - **Java 17** 必需
 - **Spring Boot**: 3.5.5
-- **Spring AI**: 1.1.3（在根 pom 中通过 BOM 配置）
+- **Spring AI**: 1.1.5（在根 pom 中通过 BOM 配置）
 - **MapStruct**: 1.6.3（用于 DTO 映射）
 - **Lombok**：启用并与 MapStruct 绑定
 
@@ -546,6 +546,55 @@ public class McpClientHandlers {
 
 ---
 
+## 新增功能 (Phase 2)
+
+### 1. Prompt Engineering Patterns（spring-ai-chat）
+
+提供 13 种经典提示词模式，通过 `PromptPatternService` 和 `PromptPatternController` 暴露 REST API。
+
+- **配置类**：`PromptPatternOptions` — `@ConfigurationProperties(prefix = "spring.ai.prompt-pattern")`，支持 YAML 自定义 temperature/topK/maxTokens
+- **服务层**：`PromptPatternService` — 9 种基础 Pattern（Zero-shot、Few-shot、System、Role、Contextual、CoT、Code Write/Explain/Translate）
+- **工作流层**：`WorkflowService` — 4 种复合模式（Step-Back、Self-Consistency、Tree of Thoughts、Auto Prompt Engineering）
+- **端口**：`/pattern/*`（详见 README.md API 列表）
+
+### 2. Agentic Workflows（spring-ai-chat）
+
+在 `WorkflowService` 中实现的 4 种工作流编排模式：
+
+| 工作流 | 方法 | 说明 |
+|--------|------|------|
+| Chain | `chainWorkflow(initialPrompt, stepPrompts)` | 顺序 LLM 管道，每步输出作为下一步输入 |
+| Parallel Sectioning | `parallelSectioning(mainPrompt, sectionPrompts)` | CompletableFuture 并发独立子任务 |
+| Parallel Voting | `parallelVoting(prompt, votes)` | 同一 prompt 多次调用取精确匹配共识 |
+| Routing | `routingWorkflow(input, routePrompts)` | BeanOutputConverter JSON 分类 + 路由 |
+
+### 3. Tool Argument Augmenter（spring-ai-chat）
+
+- `AugmentedToolCallback` — 包装现有 ToolCallback，在 JSON Schema 中注入 `innerThought`、`confidence`、`memoryNotes` 推理参数
+- `AugmentedToolCallbackProvider` — 批量包装所有 ToolCallback
+- 在 `AgentConfig.toolCallbackProvider` bean 中自动启用
+
+### 4. MCP 动态工具更新（spring-ai-mcp-weather-server）
+
+- `DynamicToolRegistry` — 运行时注册/注销工具，注入 `McpSyncServer`
+- `ToolManagementController` — HTTP 端点管理工具（`POST/DELETE /admin/tools/*`、`GET /admin/tools/list`）
+- 使用 `McpToolUtils.toSyncToolSpecification(ToolCallback)` 转换
+
+### 5. 完整 RAG 管道（spring-ai-vector）
+
+PDF 文档 → 分块 → 嵌入 → 存储 → 检索 → 回答，全链路：
+
+```
+PdfDocumentReader → TokenTextSplitter → ElasticsearchVectorStore → ChatModel
+```
+
+- **解析**：`DocumentRagServiceImpl.parse()` — 接收 MultipartFile(PDF)，返回分块数量和存储结果
+- **检索**：`VectorEsStoreRepositoryImpl.retrieval()` — 纯 similaritySearch（已修复 FilterExpression bug）
+- **回答**：`AnswerGenerationDomainServiceImpl` — 基于检索文档生成 RAG 回答
+- **端口**：`POST /document/rag/v1/parse`（解析上传）、`POST /document/rag/v1/ask`（检索+回答）
+
+---
+
 ## 文档规范
 
 - **README.md / CLAUDE.md**：使用简单表格格式，不要用目录树结构或 Project 接口图
@@ -585,3 +634,36 @@ public class McpClientHandlers {
  * @description: 文件描述内容
  */
 ```
+
+## 单元测试规范
+
+### 基本原则
+- 新增业务代码必须配套单元测试，与实现同步提交
+- 测试文件路径与源文件对应：`src/test/java/` 下保持相同包结构
+- 使用 `@ExtendWith(MockitoExtension.class)` 而非手动 `MockitoAnnotations.openMocks()`
+
+### 技术栈
+- **框架**: JUnit 5 + Mockito
+- **Controller 测试**: 使用 `WebTestClient`（WebFlux）进行单元测试，无需启动完整 Spring 上下文
+- **Service 测试**: 纯 Mockito 单元测试，不依赖 `@SpringBootTest`
+- **集成测试**: 仅对需要验证外部依赖（数据库、HTTP 调用）的场景使用 `@SpringBootTest`
+
+### Mock 规范
+- `ChatModel` 测试：使用 `ChatResponse` → `Generation` → `AssistantMessage` 构造链 mock 返回值
+  ```java
+  private ChatResponse createChatResponse(String text) {
+      return new ChatResponse(List.of(new Generation(new AssistantMessage(text))));
+  }
+  ```
+- Mock `ChatModel.call()` 时使用 `any(Prompt.class)` 而非裸 `any()`，避免与 `call(Message...)` 方法签名冲突
+- 不在 `@BeforeEach` 中创建不会在所有测试中使用的 stubbing，避免 `UnnecessaryStubbingException`
+- 需要跨测试共享的 mock 对象应在各个测试方法内独立创建，而非在 setUp 中统一初始化
+
+### 命名规范
+- 测试类：`{ClassName}Test`
+- 测试方法：`test{MethodName}{Scenario}`，如 `testParseSuccess`、`testParseWithIOException`
+
+### 覆盖率目标
+- 新增 Service / Advisor / Domain Service：核心路径 + 异常路径均需覆盖
+- Controller 测试：成功场景 + 错误场景各至少一个
+- 数据结构（record/DTO）：仅测试字段访问，无需 mock LLM 调用的完整流程

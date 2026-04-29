@@ -8,13 +8,15 @@ Model Context Protocol (MCP) 实现模块，提供基于 Spring AI 的 MCP Serve
 |------|------|
 | Java | 17+ |
 | Spring Boot | 3.5.5 |
-| Spring AI | 1.1.3 |
+| Spring AI | 1.1.5 |
 | MCP 传输 | SSE (Server-Sent Events) |
 
 ## 已实现的项目
 
 - ✅ **spring-ai-mcp-filesystem** - [本地文件读取服务器](./spring-ai-mcp-filesystem/README.md)（STDIO 传输）
 - ✅ **spring-ai-mcp-weather** - [天气查询项目](./spring-ai-mcp-weather/README.md)（SSE 传输）
+  - ✅ `DynamicToolRegistry` — 运行时动态注册/注销工具
+  - ✅ `ToolManagementController` — HTTP 端点管理工具（`/admin/tools/*`）
 
 ## 子模块结构
 

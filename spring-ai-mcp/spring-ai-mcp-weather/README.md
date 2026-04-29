@@ -8,7 +8,7 @@
 |------|------|
 | Java | 17+ |
 | Spring Boot | 3.5.5 |
-| Spring AI | 1.1.3 |
+| Spring AI | 1.1.5 |
 | LLM | Ollama (qwen2.5:7b) |
 | 天气服务 | wttr.in（免费，无需 API Key） |
 | MCP 传输 | HTTP/SSE (Server-Sent Events) |

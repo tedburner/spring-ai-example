@@ -1,6 +1,10 @@
 package com.ai.chat.interfaces.controller;
 
 import com.ai.chat.application.service.AgentService;
+import com.ai.chat.application.service.WorkflowService;
+import com.ai.chat.application.service.dto.ChainResult;
+import com.ai.chat.application.service.dto.ParallelResult;
+import com.ai.chat.application.service.dto.RoutingDecision;
 import com.ai.chat.domain.entity.TavilySearchResponse;
 import com.ai.chat.interfaces.dto.AgentChatRequest;
 import com.ai.chat.interfaces.dto.TavilySearchRequest;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,9 +32,11 @@ public class AgentController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentController.class);
 
     private final AgentService agentService;
+    private final WorkflowService workflowService;
 
-    public AgentController(AgentService agentService) {
+    public AgentController(AgentService agentService, WorkflowService workflowService) {
         this.agentService = agentService;
+        this.workflowService = workflowService;
     }
 
     /**
@@ -121,6 +128,73 @@ public class AgentController {
         } catch (Exception e) {
             LOGGER.error("Tavily 搜索失败", e);
             return Mono.just(WebResult.buildFail("Tavily 搜索失败：" + e.getMessage()));
+        }
+    }
+
+    /**
+     * Chain Workflow — 顺序 LLM 调用管道
+     */
+    @PostMapping("/workflow/chain")
+    public Mono<WebResult> chainWorkflow(@RequestBody Map<String, Object> request) {
+        try {
+            String initialPrompt = (String) request.get("initialPrompt");
+            @SuppressWarnings("unchecked")
+            List<String> stepPrompts = (List<String>) request.get("stepPrompts");
+            ChainResult result = workflowService.chainWorkflow(initialPrompt, stepPrompts);
+            return Mono.just(WebResult.buildSuccess(result));
+        } catch (Exception e) {
+            LOGGER.error("Chain Workflow 执行失败", e);
+            return Mono.just(WebResult.buildFail("Chain Workflow 执行失败：" + e.getMessage()));
+        }
+    }
+
+    /**
+     * Parallel Sectioning Workflow — 并发执行独立子任务
+     */
+    @PostMapping("/workflow/parallel/sectioning")
+    public Mono<WebResult> parallelSectioning(@RequestBody Map<String, Object> request) {
+        try {
+            String mainPrompt = (String) request.get("mainPrompt");
+            @SuppressWarnings("unchecked")
+            List<String> sectionPrompts = (List<String>) request.get("sectionPrompts");
+            ParallelResult result = workflowService.parallelSectioning(mainPrompt, sectionPrompts);
+            return Mono.just(WebResult.buildSuccess(result));
+        } catch (Exception e) {
+            LOGGER.error("Parallel Sectioning 执行失败", e);
+            return Mono.just(WebResult.buildFail("Parallel Sectioning 执行失败：" + e.getMessage()));
+        }
+    }
+
+    /**
+     * Parallel Voting Workflow — 多次调用取共识
+     */
+    @PostMapping("/workflow/parallel/voting")
+    public Mono<WebResult> parallelVoting(@RequestBody Map<String, Object> request) {
+        try {
+            String prompt = (String) request.get("prompt");
+            int votes = (int) request.getOrDefault("votes", 5);
+            ParallelResult result = workflowService.parallelVoting(prompt, votes);
+            return Mono.just(WebResult.buildSuccess(result));
+        } catch (Exception e) {
+            LOGGER.error("Parallel Voting 执行失败", e);
+            return Mono.just(WebResult.buildFail("Parallel Voting 执行失败：" + e.getMessage()));
+        }
+    }
+
+    /**
+     * Routing Workflow — 输入分类路由
+     */
+    @PostMapping("/workflow/routing")
+    public Mono<WebResult> routingWorkflow(@RequestBody Map<String, Object> request) {
+        try {
+            String input = (String) request.get("input");
+            @SuppressWarnings("unchecked")
+            Map<String, String> routePrompts = (Map<String, String>) request.get("routePrompts");
+            RoutingDecision result = workflowService.routingWorkflow(input, routePrompts);
+            return Mono.just(WebResult.buildSuccess(result));
+        } catch (Exception e) {
+            LOGGER.error("Routing Workflow 执行失败", e);
+            return Mono.just(WebResult.buildFail("Routing Workflow 执行失败：" + e.getMessage()));
         }
     }
 }

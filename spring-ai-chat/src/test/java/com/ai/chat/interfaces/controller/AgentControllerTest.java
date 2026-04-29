@@ -1,6 +1,7 @@
 package com.ai.chat.interfaces.controller;
 
 import com.ai.chat.application.service.AgentService;
+import com.ai.chat.application.service.WorkflowService;
 import com.ai.chat.domain.entity.SearchResult;
 import com.ai.chat.domain.entity.TavilySearchResponse;
 import com.ai.chat.interfaces.dto.AgentChatRequest;
@@ -30,12 +31,15 @@ class AgentControllerTest {
     @Mock
     private AgentService agentService;
 
+    @Mock
+    private WorkflowService workflowService;
+
     private WebTestClient webTestClient;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        AgentController controller = new AgentController(agentService);
+        AgentController controller = new AgentController(agentService, workflowService);
         webTestClient = WebTestClient.bindToController(controller).build();
     }
 

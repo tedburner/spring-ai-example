@@ -1,5 +1,6 @@
 package com.ai.chat.application.config;
 
+import com.ai.chat.application.advisor.AugmentedToolCallbackProvider;
 import com.ai.chat.application.service.ToolService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -30,8 +31,9 @@ public class AgentConfig {
      */
     @Bean
     public ToolCallbackProvider toolCallbackProvider(ToolService toolService) {
-        return MethodToolCallbackProvider.builder()
+        ToolCallbackProvider rawProvider = MethodToolCallbackProvider.builder()
                 .toolObjects(toolService)
                 .build();
+        return new AugmentedToolCallbackProvider(rawProvider);
     }
 }

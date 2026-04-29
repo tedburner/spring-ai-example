@@ -39,7 +39,7 @@ class AdvancedFilterDomainServiceImplTest {
 
         // Then
         assertEquals(1, results.size());
-        assertEquals("Content 1", results.get(0).getFormattedContent());
+        assertEquals("Content 1", results.get(0).getText());
     }
 
     @Test
@@ -99,7 +99,7 @@ class AdvancedFilterDomainServiceImplTest {
 
         // Then
         assertEquals(1, results.size());
-        assertEquals("Middle content", results.get(0).getFormattedContent());
+        assertEquals("Middle content", results.get(0).getText());
     }
 
     @Test
@@ -117,7 +117,7 @@ class AdvancedFilterDomainServiceImplTest {
 
         // Then
         assertEquals(1, results.size());
-        assertEquals("High confidence", results.get(0).getFormattedContent());
+        assertEquals("High confidence", results.get(0).getText());
     }
 
     @Test
@@ -139,7 +139,7 @@ class AdvancedFilterDomainServiceImplTest {
 
         // Then
         assertEquals(1, results.size());
-        assertEquals("Engineering doc", results.get(0).getFormattedContent());
+        assertEquals("Engineering doc", results.get(0).getText());
     }
 
     @Test
